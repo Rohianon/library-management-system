@@ -21,6 +21,10 @@ public class MainView extends VBox {
     private final Button updateButton;
     private final Button deleteButton;
     private final Button refreshButton;
+    private final Button prevPageButton;
+    private final Button nextPageButton;
+    private final Label pageInfoLabel;
+    private final ComboBox<Integer> pageSizeBox;
 
     public MainView() {
         setSpacing(10);
@@ -52,23 +56,38 @@ public class MainView extends VBox {
         updateButton = new Button("Update");
         deleteButton = new Button("Delete");
         refreshButton = new Button("Refresh");
+        prevPageButton = new Button("Prev");
+        nextPageButton = new Button("Next");
+        pageInfoLabel = new Label("Page 1 of 1");
+        pageSizeBox = new ComboBox<>();
+        pageSizeBox.getItems().addAll(5, 10, 20, 50);
+        pageSizeBox.setValue(10);
 
         HBox buttonBox = new HBox(10, addButton, updateButton, deleteButton, refreshButton);
         buttonBox.setPadding(new Insets(5));
+
+        HBox paginationBox = new HBox(10,
+                prevPageButton,
+                nextPageButton,
+                new Label("Page size:"),
+                pageSizeBox,
+                pageInfoLabel
+        );
+        paginationBox.setPadding(new Insets(5));
 
         // Initialize table
         tableView = createTableView();
         VBox.setVgrow(tableView, Priority.ALWAYS);
 
-        getChildren().addAll(formBox, buttonBox, tableView);
+        getChildren().addAll(formBox, buttonBox, tableView, paginationBox);
     }
 
     private TableView<Book> createTableView() {
         TableView<Book> table = new TableView<>();
 
-        TableColumn<Book, Long> idColumn = new TableColumn<>("ID");
+        TableColumn<Book, java.util.UUID> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        idColumn.setPrefWidth(50);
+        idColumn.setPrefWidth(200);
 
         TableColumn<Book, String> titleColumn = new TableColumn<>("Title");
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -126,5 +145,21 @@ public class MainView extends VBox {
 
     public Button getRefreshButton() {
         return refreshButton;
+    }
+
+    public Button getPrevPageButton() {
+        return prevPageButton;
+    }
+
+    public Button getNextPageButton() {
+        return nextPageButton;
+    }
+
+    public Label getPageInfoLabel() {
+        return pageInfoLabel;
+    }
+
+    public ComboBox<Integer> getPageSizeBox() {
+        return pageSizeBox;
     }
 }
