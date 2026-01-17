@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 import java.util.List;
 
 @Service
@@ -23,6 +27,12 @@ public class BookService {
     @Transactional(readOnly = true)
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Book> getAllBooks(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").ascending());
+        return bookRepository.findAll(pageRequest);
     }
 
     @Transactional(readOnly = true)
