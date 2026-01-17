@@ -1,6 +1,7 @@
 package com.rohianon.library.fx.view;
 
 import com.rohianon.library.fx.model.Book;
+import com.rohianon.library.fx.model.PageResponse;
 import com.rohianon.library.fx.service.BookService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,6 +37,8 @@ public class MainView extends VBox {
     private final TextField searchField;
     private ObservableList<Book> sourceData;
     private FilteredList<Book> filteredData;
+    private int currentPage = 0;
+    private int totalPages = 1;
 
     public MainView() {
         this.bookService = new BookService();
@@ -88,6 +91,9 @@ public class MainView extends VBox {
         updateButton.setOnAction(e -> handleUpdate());
         deleteButton.setOnAction(e -> handleDelete());
         refreshButton.setOnAction(e -> handleRefresh());
+        prevPageButton.setOnAction(e -> handlePrevPage());
+        nextPageButton.setOnAction(e -> handleNextPage());
+        pageSizeBox.setOnAction(e -> handlePageSizeChange());
 
         HBox buttonBox = new HBox(10, addButton, updateButton, deleteButton, refreshButton);
         buttonBox.setPadding(new Insets(5));
@@ -230,13 +236,42 @@ public class MainView extends VBox {
         tableView.getSelectionModel().clearSelection();
     }
 
+    private void handlePrevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            refreshTable();
+        }
+    }
+
+    private void handleNextPage() {
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            refreshTable();
+        }
+    }
+
+    private void handlePageSizeChange() {
+        currentPage = 0;
+        refreshTable();
+    }
+
     private void refreshTable() {
         try {
-            List<Book> books = bookService.getAllBooks();
-            sourceData.setAll(books);
+            int pageSize = pageSizeBox.getValue();
+            PageResponse<Book> response = bookService.getAllBooks(currentPage, pageSize);
+            sourceData.setAll(response.getContent());
+            totalPages = response.getTotalPages();
+            if (totalPages == 0) totalPages = 1;
+            updatePaginationControls();
         } catch (Exception e) {
             showError("Error", "Failed to load books: " + e.getMessage());
         }
+    }
+
+    private void updatePaginationControls() {
+        pageInfoLabel.setText("Page " + (currentPage + 1) + " of " + totalPages);
+        prevPageButton.setDisable(currentPage <= 0);
+        nextPageButton.setDisable(currentPage >= totalPages - 1);
     }
 
     private void clearForm() {

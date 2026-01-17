@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rohianon.library.fx.model.Book;
+import com.rohianon.library.fx.model.PageResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +77,21 @@ public class BookService {
         }
 
         return objectMapper.readValue(response.body(), new TypeReference<List<Book>>() {});
+    }
+
+    public PageResponse<Book> getAllBooks(int page, int size) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "?page=" + page + "&size=" + size))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to fetch books: HTTP " + response.statusCode());
+        }
+
+        return objectMapper.readValue(response.body(), new TypeReference<PageResponse<Book>>() {});
     }
 
     public Book createBook(Book book) throws IOException, InterruptedException {
