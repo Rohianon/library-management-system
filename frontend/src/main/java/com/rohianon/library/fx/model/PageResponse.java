@@ -10,6 +10,7 @@ public class PageResponse<T> {
     private int size;
     private boolean first;
     private boolean last;
+    private boolean empty;
 
     public PageResponse() {
     }
@@ -68,5 +69,13 @@ public class PageResponse<T> {
 
     public void setLast(boolean last) {
         this.last = last;
+    }
+
+    public boolean isEmpty() {
+        return empty;
+    }
+
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
     }
 }
