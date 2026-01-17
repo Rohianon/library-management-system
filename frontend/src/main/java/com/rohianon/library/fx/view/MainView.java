@@ -15,7 +15,9 @@ import java.util.List;
 
 public class MainView extends VBox {
 
+    private final BookService bookService;
     private final TableView<Book> tableView;
+    private Long selectedBookId;
     private final TextField titleField;
     private final TextField authorField;
     private final TextField isbnField;
@@ -86,6 +88,31 @@ public class MainView extends VBox {
         tableView = createTableView();
         VBox.setVgrow(tableView, Priority.ALWAYS);
 
+        // Initialize selectedBookId
+        this.selectedBookId = null;
+
+        // Add selection listener to populate form when a row is selected
+        tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                populateForm(newSelection);
+                selectedBookId = newSelection.getId();
+            } else {
+                clearForm();
+                selectedBookId = null;
+            }
+        });
+
+        // Add row factory to clear selection when clicking empty area
+        tableView.setRowFactory(tv -> {
+            TableRow<Book> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (row.isEmpty()) {
+                    tableView.getSelectionModel().clearSelection();
+                }
+            });
+            return row;
+        });
+
         getChildren().addAll(formBox, buttonBox, tableView, paginationBox);
     }
 
@@ -127,6 +154,13 @@ public class MainView extends VBox {
         publishedDatePicker.setValue(null);
     }
 
+    private void populateForm(Book book) {
+        titleField.setText(book.getTitle());
+        authorField.setText(book.getAuthor());
+        isbnField.setText(book.getIsbn() != null ? book.getIsbn() : "");
+        publishedDatePicker.setValue(book.getPublishedDate());
+    }
+
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -138,7 +172,7 @@ public class MainView extends VBox {
     private TableView<Book> createTableView() {
         TableView<Book> table = new TableView<>();
 
-        TableColumn<Book, java.util.UUID> idColumn = new TableColumn<>("ID");
+        TableColumn<Book, Long> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         idColumn.setPrefWidth(200);
 
@@ -214,5 +248,9 @@ public class MainView extends VBox {
 
     public ComboBox<Integer> getPageSizeBox() {
         return pageSizeBox;
+    }
+
+    public Long getSelectedBookId() {
+        return selectedBookId;
     }
 }
