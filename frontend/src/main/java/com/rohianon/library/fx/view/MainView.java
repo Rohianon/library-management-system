@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public class MainView extends VBox {
 
@@ -71,6 +72,9 @@ public class MainView extends VBox {
         pageSizeBox.setValue(10);
 
         addButton.setOnAction(e -> handleAdd());
+        updateButton.setOnAction(e -> handleUpdate());
+        deleteButton.setOnAction(e -> handleDelete());
+        refreshButton.setOnAction(e -> handleRefresh());
 
         HBox buttonBox = new HBox(10, addButton, updateButton, deleteButton, refreshButton);
         buttonBox.setPadding(new Insets(5));
@@ -136,6 +140,63 @@ public class MainView extends VBox {
         } catch (Exception e) {
             showError("Error", "Failed to add book: " + e.getMessage());
         }
+    }
+
+    private void handleUpdate() {
+        if (selectedBookId == null) {
+            showError("Selection Error", "Please select a book to update.");
+            return;
+        }
+
+        String title = titleField.getText().trim();
+        String author = authorField.getText().trim();
+        String isbn = isbnField.getText().trim();
+        LocalDate publishedDate = publishedDatePicker.getValue();
+
+        if (title.isEmpty() || author.isEmpty()) {
+            showError("Validation Error", "Title and Author are required.");
+            return;
+        }
+
+        Book book = new Book(selectedBookId, title, author, isbn, publishedDate);
+
+        try {
+            bookService.updateBook(selectedBookId, book);
+            refreshTable();
+            clearForm();
+            tableView.getSelectionModel().clearSelection();
+        } catch (Exception e) {
+            showError("Error", "Failed to update book: " + e.getMessage());
+        }
+    }
+
+    private void handleDelete() {
+        if (selectedBookId == null) {
+            showError("Selection Error", "Please select a book to delete.");
+            return;
+        }
+
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Confirm Delete");
+        confirmDialog.setHeaderText(null);
+        confirmDialog.setContentText("Are you sure you want to delete this book?");
+
+        Optional<ButtonType> result = confirmDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                bookService.deleteBook(selectedBookId);
+                refreshTable();
+                clearForm();
+                tableView.getSelectionModel().clearSelection();
+            } catch (Exception e) {
+                showError("Error", "Failed to delete book: " + e.getMessage());
+            }
+        }
+    }
+
+    private void handleRefresh() {
+        refreshTable();
+        tableView.getSelectionModel().clearSelection();
     }
 
     private void refreshTable() {
