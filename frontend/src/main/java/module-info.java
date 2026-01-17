@@ -10,4 +10,5 @@ module com.rohianon.library.fx {
     exports com.rohianon.library.fx;
     exports com.rohianon.library.fx.model;
     exports com.rohianon.library.fx.service;
+    exports com.rohianon.library.fx.view;
 }
