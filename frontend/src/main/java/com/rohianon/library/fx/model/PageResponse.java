@@ -11,6 +11,7 @@ public class PageResponse<T> {
     private boolean first;
     private boolean last;
     private boolean empty;
+    private int numberOfElements;
 
     public PageResponse() {
     }
@@ -77,5 +78,13 @@ public class PageResponse<T> {
 
     public void setEmpty(boolean empty) {
         this.empty = empty;
+    }
+
+    public int getNumberOfElements() {
+        return numberOfElements;
+    }
+
+    public void setNumberOfElements(int numberOfElements) {
+        this.numberOfElements = numberOfElements;
     }
 }
