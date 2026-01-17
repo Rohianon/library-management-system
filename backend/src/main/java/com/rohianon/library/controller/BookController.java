@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import org.springframework.data.domain.Page;
+
 import java.net.URI;
 import java.util.List;
 
@@ -32,6 +34,14 @@ public class BookController {
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
         List<Book> books = bookService.getAllBooks();
+        return ResponseEntity.ok(books);
+    }
+
+    @GetMapping(params = {"page", "size"})
+    public ResponseEntity<Page<Book>> getAllBooks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<Book> books = bookService.getAllBooks(page, size);
         return ResponseEntity.ok(books);
     }
 
