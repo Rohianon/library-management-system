@@ -3,6 +3,8 @@ package com.rohianon.library.fx.view;
 import com.rohianon.library.fx.model.Book;
 import com.rohianon.library.fx.service.BookService;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -31,6 +33,9 @@ public class MainView extends VBox {
     private final Button nextPageButton;
     private final Label pageInfoLabel;
     private final ComboBox<Integer> pageSizeBox;
+    private final TextField searchField;
+    private ObservableList<Book> sourceData;
+    private FilteredList<Book> filteredData;
 
     public MainView() {
         this.bookService = new BookService();
@@ -58,6 +63,14 @@ public class MainView extends VBox {
                 new Label("Published:"), publishedDatePicker
         );
         formBox.setPadding(new Insets(5));
+
+        // Initialize search field
+        searchField = new TextField();
+        searchField.setPromptText("Search by title, author, or ISBN...");
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
+        HBox searchBox = new HBox(10, new Label("Search:"), searchField);
+        searchBox.setPadding(new Insets(5));
 
         // Initialize buttons
         addButton = new Button("Add");
@@ -92,6 +105,24 @@ public class MainView extends VBox {
         tableView = createTableView();
         VBox.setVgrow(tableView, Priority.ALWAYS);
 
+        // Initialize data lists for filtering
+        sourceData = FXCollections.observableArrayList();
+        filteredData = new FilteredList<>(sourceData, b -> true);
+        tableView.setItems(filteredData);
+
+        // Add search listener for real-time filtering
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            filteredData.setPredicate(book -> {
+                if (newVal == null || newVal.isEmpty()) {
+                    return true;
+                }
+                String filter = newVal.toLowerCase();
+                return book.getTitle().toLowerCase().contains(filter) ||
+                       book.getAuthor().toLowerCase().contains(filter) ||
+                       (book.getIsbn() != null && book.getIsbn().toLowerCase().contains(filter));
+            });
+        });
+
         // Initialize selectedBookId
         this.selectedBookId = null;
 
@@ -117,7 +148,7 @@ public class MainView extends VBox {
             return row;
         });
 
-        getChildren().addAll(formBox, buttonBox, tableView, paginationBox);
+        getChildren().addAll(formBox, searchBox, buttonBox, tableView, paginationBox);
     }
 
     private void handleAdd() {
@@ -202,7 +233,7 @@ public class MainView extends VBox {
     private void refreshTable() {
         try {
             List<Book> books = bookService.getAllBooks();
-            tableView.setItems(FXCollections.observableArrayList(books));
+            sourceData.setAll(books);
         } catch (Exception e) {
             showError("Error", "Failed to load books: " + e.getMessage());
         }
