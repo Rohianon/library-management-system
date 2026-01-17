@@ -1,6 +1,8 @@
 package com.rohianon.library.fx.view;
 
 import com.rohianon.library.fx.model.Book;
+import com.rohianon.library.fx.service.BookService;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -9,6 +11,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class MainView extends VBox {
 
@@ -21,8 +24,11 @@ public class MainView extends VBox {
     private final Button updateButton;
     private final Button deleteButton;
     private final Button refreshButton;
+    private final BookService bookService;
 
     public MainView() {
+        this.bookService = new BookService();
+
         setSpacing(10);
         setPadding(new Insets(10));
 
@@ -53,6 +59,8 @@ public class MainView extends VBox {
         deleteButton = new Button("Delete");
         refreshButton = new Button("Refresh");
 
+        addButton.setOnAction(e -> handleAdd());
+
         HBox buttonBox = new HBox(10, addButton, updateButton, deleteButton, refreshButton);
         buttonBox.setPadding(new Insets(5));
 
@@ -61,6 +69,52 @@ public class MainView extends VBox {
         VBox.setVgrow(tableView, Priority.ALWAYS);
 
         getChildren().addAll(formBox, buttonBox, tableView);
+    }
+
+    private void handleAdd() {
+        String title = titleField.getText().trim();
+        String author = authorField.getText().trim();
+        String isbn = isbnField.getText().trim();
+        LocalDate publishedDate = publishedDatePicker.getValue();
+
+        if (title.isEmpty() || author.isEmpty()) {
+            showError("Validation Error", "Title and Author are required.");
+            return;
+        }
+
+        Book book = new Book(null, title, author, isbn, publishedDate);
+
+        try {
+            bookService.createBook(book);
+            refreshTable();
+            clearForm();
+        } catch (Exception e) {
+            showError("Error", "Failed to add book: " + e.getMessage());
+        }
+    }
+
+    private void refreshTable() {
+        try {
+            List<Book> books = bookService.getAllBooks();
+            tableView.setItems(FXCollections.observableArrayList(books));
+        } catch (Exception e) {
+            showError("Error", "Failed to load books: " + e.getMessage());
+        }
+    }
+
+    private void clearForm() {
+        titleField.clear();
+        authorField.clear();
+        isbnField.clear();
+        publishedDatePicker.setValue(null);
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private TableView<Book> createTableView() {
